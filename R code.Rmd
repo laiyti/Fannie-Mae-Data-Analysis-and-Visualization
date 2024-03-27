@@ -1,0 +1,452 @@
+---
+title: "What changes did Fannie Mae make after the 2008 financial crisis to strengthen itself to face the COVID-19 pandemic in 2019?"
+author: Yiting Lai
+format: html
+output: bookdown::html_document2
+toc: false
+editor: visual
+---
+
+```{=html}
+<!This block assists in formatting the title, font size, chart caption, etc.– –>
+<style type="text/css">
+  .title {
+    text-align: left;
+}
+body{ /* Normal  */
+      font-size: 16px;
+      margin: 2.5cm;
+      top: 1.5cm;
+      text-align: justify;
+  }
+  .caption {
+    font-size: big;
+    text-align: center;
+    position: above;
+}
+</style>
+```
+```{css plotly-caption, echo = FALSE}
+/*Include this block if you like the chart caption at the top instead of the bottom.*/
+div.figure {
+  display: table;
+}
+div.figure p {
+  display: table-caption;
+  caption-side: top;
+}
+```
+
+------------------------------------------------------------------------
+
+In this project, I will explore the changes that Fannie Mae implemented following the 2008 financial crisis to better prepare for the COVID-19 pandemic in 2019, through data visualization techniques.
+
+Figure \@ref(fig:time-series-chart) depicts the default rate from 2000 Q1 to 2023 Q2, illustrating a continual rise during the early 2000s, peaking in 2007 Q4, and subsequently experiencing a notable decrease following government intervention. Interestingly, during the COVID-19 pandemic, despite substantial harm to the United States economy, the default rate exhibited minimal deviation, suggesting that Fannie Mae did not encounter the same losses of the magnitude seen in 2008. However, what changes occurred within Fannie Mae after 2008?
+
+First, let's see Figure \@ref(fig:bar-charts) and dive into credit scores. Borrowers were categorized into different groups based on their credit scores, namely "Poor", "Fair", "Good", "Very Good", and "Exceptional" as per the information provided by [Experian](<https://www.experian.com/blogs/ask-experian/infographic-what-are-the-different-scoring-ranges/>). It's important to note that missing values may indicate either borrowers without a credit score or those with missing information, both of which are grouped under "No credit score". Comparing the data to 2007 Q4, I observe the disappearance of the "Poor" credit score group. Furthermore, there was a significant increase in borrowers categorized in groups higher than "Good", while the "Fair" group experienced a decrease. These trends suggest that Fannie Mae may have tightened its criteria regarding borrowers' credit scores and backgrounds after 2008.
+
+Next, let's analyze the differences in some numerical variables presented in Figure \@ref(fig:box-plots). Compared to 2007 Q4, I observe several notable trends: the average credit score has generally increased, the original interest rate has decreased, and the loan age has decreased as well. A higher credit score suggests that borrowers have a better ability to repay the loan, lower interest rates make it easier for borrowers to manage their loan payments. Additionally, the shorter loan age indicates that loans are being paid off more quickly.
+
+Taken together, these changes imply that the level of risk assumed by Fannie Mae is lower compared to 2008. In other words, these adjustments likely contributed to the stable default rate observed during the COVID-19 pandemic.
+
+In Figure \@ref(fig:scatter-plots), the relationship between the original interest rate and credit score is analyzed across different "PURPOSE" groups, with "PURPOSE" denoting the purpose of the loan. Typically, this relationship is negative, meaning that lower credit scores tend to be associated with higher interest rates. However, in 2019 Q4, the "Refinance" category exhibits a positive relationship.
+
+To understand this anomaly, let's turn to Figure \@ref(fig:stacked-bar-chart), which illustrates the proportion of credit score groups among different "PURPOSE" categories in 2007 Q4. While the proportions of different credit score groups for "Purchase" and "Cash-out refinance" purposes show similar compositions, the "Refinance" group displays a lower proportion of poor or no credit score individuals. This suggests that Fannie Mae may have observed this difference in 2007 Q4 and subsequently implemented changes to mitigate defaulted loans in the "Refinance" category.
+
+Lastly, Figure \@ref(fig:map-plots) displays the ranks of default rates in 2007 Q4 and 2019 Q4 respectively, with lower ranks indicating higher default rates. (For example, rank = 1 means having the highest default rate.) In 2007 Q4, states with higher defaulted rates were predominantly located on the West Coast and East Coast. However, in 2019 Q4, the states in the Midwest and South exhibited higher defaulted rates. This shift in default rate distribution was not deliberately orchestrated by Fannie Mae but rather reflects the differing factors driving loan defaults in 2007 Q4 and 2019 Q4.
+
+In summary, based on the visualizations presented, it is assumed that Fannie Mae implemented the following changes to strengthen its position against the challenges posed by the COVID-19 pandemic in 2019:
+
+1.  Implementation of stricter background checks to assess borrower ability to repay loans, including a focus on credit scores.
+2.  Reduction of loan ages to mitigate the risk of defaulted loans and ensure stable cash flow.
+3.  Adjustment of interest rate settings for specific borrower groups with a history of poor performance observed in 2007 Q4 to minimize defaulted loans.
+
+Following the significant lessons learned from the 2008 financial crisis, Fannie Mae has successfully protected the company's role in the secondary market by maintaining a stable default rate. These measures demonstrate Fannie Mae's commitment to mitigating risks and ensuring financial stability in the face of economic challenges such as the COVID-19 pandemic.
+
+(Word counts: 723)
+
+### Figure Appendix {.unnumbered}
+
+```{r, include = FALSE}
+# library
+library(readr)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(zoo)
+library(patchwork)
+library(plotly)
+library(usmap)
+```
+
+```{r, include = FALSE}
+# load datasets
+setwd("/Users/yitinglai/Desktop/UMD MSBA/2024 Spring/BUDT758D/Midterm Individual Project")
+yr2007Q4 <- read_rds("data_sample_2007Q4.rds")
+yr2019Q4 <- read_rds("data_sample_2019Q4.rds")
+default_rate_ts <- read_csv("default_rate_ts.csv")
+```
+
+```{r, include = FALSE}
+# clean data
+# organize the category variables
+yr2007Q4_ftr <- yr2007Q4 %>%
+  mutate(CHANNEL = as.factor(CHANNEL),
+         SELLER = as.factor(SELLER),
+         NUM_BO = as.numeric(NUM_BO),
+         FIRST_FLAG = as.factor(FIRST_FLAG),
+         PURPOSE = as.factor(PURPOSE),
+         OCC_STAT = as.factor(OCC_STAT),
+         STATE = as.factor(STATE),
+         DEFAULT_FLAG = as.factor(DEFAULT_FLAG))
+
+yr2019Q4_ftr <- yr2019Q4 %>%
+  mutate(CHANNEL = as.factor(CHANNEL),
+         SELLER = as.factor(SELLER),
+         NUM_BO = as.numeric(NUM_BO),
+         FIRST_FLAG = as.factor(FIRST_FLAG),
+         PURPOSE = as.factor(PURPOSE),
+         OCC_STAT = as.factor(OCC_STAT),
+         STATE = as.factor(STATE),
+         DEFAULT_FLAG = as.factor(DEFAULT_FLAG))
+```
+
+```{r, include = FALSE}
+# time series data preparation
+default_rate_season <- default_rate_ts %>%
+  mutate(Date = as.Date(Date, "%m/%d/%Y"),
+         year = as.factor(year(Date)), 
+         yearqrt = as.factor(as.yearqtr(Date))) %>%
+  select(-...3, -...4, -...5, -...6) %>%
+  arrange(-`Default rate`)
+```
+
+<br>
+
+```{r time-series-chart, echo = FALSE, fig.width=10, fig.height = 4, fig.cap="Time series of default rate from 2000 Q1 to 2023 Q2"}
+# plot time series data
+default_rate_ts <- default_rate_season %>%
+  ggplot(aes(x = yearqrt, y = `Default rate`, group = 1)) + 
+  geom_line(col = "#ffd200", lwd = 1.5) +
+  geom_point(col = "#e21833", size = 1.8) +
+  theme_classic() + 
+  geom_vline(xintercept = as.numeric(default_rate_season$yearqrt[default_rate_season$yearqrt == "2007 Q4"]), lty = 2) +
+  geom_vline(xintercept = as.numeric(default_rate_season$yearqrt[default_rate_season$yearqrt == "2019 Q4"]), lty = 2) +
+  labs(x = "", y = 'Default rate') + 
+  geom_text(data = subset(default_rate_season, yearqrt == "2008 Q4"), aes(x = yearqrt, y = 0.094, label = "2007 Q4"), size=4, col = 'black') +
+  geom_text(data = subset(default_rate_season, yearqrt == "2020 Q4"), aes(x = yearqrt, y = 0.094, label = "2019 Q4"), size=4, col = 'black') +
+  theme(axis.text.x = element_text(size = 6, angle = 90, vjust = 0.5),
+        axis.title = element_text(face = "bold", size = 10), 
+        panel.grid.major.y = element_line(color = "grey85"))
+
+default_rate_ts
+```
+
+```{r, include = FALSE}
+# credit score grouping - 2007
+cscore_b_2007 <- yr2007Q4_ftr %>%
+  mutate(cscore_group = case_when(
+    is.na(CSCORE_B) ~ "No credit score",
+    CSCORE_B <= 579 ~ "Poor",
+    (CSCORE_B >= 580) & (CSCORE_B <= 669) ~ "Fair",
+    (CSCORE_B >= 670) & (CSCORE_B <= 739) ~ "Good",
+    (CSCORE_B >= 740) & (CSCORE_B <= 799) ~ "Very Good",
+    CSCORE_B >= 800 ~ "Exceptional"),
+    cscore_group = as.factor(cscore_group))
+
+# credit score grouping - 2019
+cscore_b_2019 <- yr2019Q4_ftr %>%
+  mutate(cscore_group = case_when(
+    is.na(CSCORE_B) ~ "No credit score",
+    CSCORE_B <= 579 ~ "Poor",
+    (CSCORE_B >= 580) & (CSCORE_B <= 669) ~ "Fair",
+    (CSCORE_B >= 670) & (CSCORE_B <= 739) ~ "Good",
+    (CSCORE_B >= 740) & (CSCORE_B <= 799) ~ "Very Good",
+    CSCORE_B >= 800 ~ "Exceptional"),
+    cscore_group = as.factor(cscore_group))
+```
+
+<br>
+
+```{r, include = FALSE}
+# calculate the default rate in different credit score group - 2007
+cscore_grouped_data_2007 <- cscore_b_2007 %>% 
+  group_by(cscore_group, DEFAULT_FLAG) %>%
+  mutate(num = n()) %>%
+  ungroup() %>%
+  group_by(cscore_group) %>%
+  mutate(cscore_group = factor(cscore_group, levels = c("No credit score", "Poor", "Fair", "Good", "Very Good", "Exceptional")))
+# calculate the default rate in different credit score group - 2019
+cscore_grouped_data_2019 <- cscore_b_2019 %>% 
+  group_by(cscore_group, DEFAULT_FLAG) %>%
+  mutate(num = n()) %>%
+  ungroup() %>%
+  group_by(cscore_group) %>%
+  mutate(cscore_group = factor(cscore_group, levels = c("No credit score", "Poor", "Fair", "Good", "Very Good", "Exceptional")))
+```
+
+<br>
+
+```{r bar-charts, echo = FALSE, fig.width=10, fig.height = 4, fig.cap="Number of borrowers in different credit score group in 2007 and 2019"}
+# prepare for the y-axis range
+max_num <- max(max(cscore_grouped_data_2007$num), max(cscore_grouped_data_2019$num))
+
+# define the color
+col_set = c("#e21833", "#ffd200")
+
+# bar chart for 2007
+bar_chart_crtgp_2007 <- cscore_grouped_data_2007 %>%
+  ggplot(aes(x=cscore_group, y=num, group = DEFAULT_FLAG, fill = DEFAULT_FLAG)) +
+  geom_col(width=0.7, position="dodge")+
+  labs(title = "2007 Q4",
+       y = "",
+       x = "Credit score group") +
+  geom_text(aes(y = num + 1000, label = num), position = position_dodge(width = 0.7), size = 3) + 
+  theme_minimal() +
+  theme(axis.title.x = element_text(margin = margin(t = 15)),
+        axis.text = element_text(face="bold",size=7),
+        legend.position="none",
+        panel.grid.minor = element_blank(), 
+        panel.grid.major.y = element_line(color="grey85"),
+        panel.grid.major.x = element_blank()) +
+  scale_fill_manual(name="", values = col_set, labels = c("defaulted", "non-defaulted")) +
+  ylim(0, max_num+1000)
+
+# adjust the level order consistent with year 2007
+level_order <- c("1", "0")
+cscore_grouped_data_2019$DEFAULT_FLAG <- factor(cscore_grouped_data_2019$DEFAULT_FLAG, levels = level_order)
+
+# bar chart for 2019
+bar_chart_crtgp_2019 <- cscore_grouped_data_2019 %>%
+  ggplot(aes(x=cscore_group, y=num, group = DEFAULT_FLAG, fill = DEFAULT_FLAG)) +
+  geom_col(width=0.7, position="dodge")+
+  labs(title = "2019 Q4",
+       y = "",
+       x = "Credit score group") +
+  geom_text(aes(y = num + 1000, label = num), position = position_dodge(width = 0.7), size = 3) + 
+  theme_minimal() +
+  theme(axis.title.x = element_text(margin = margin(t = 15)),
+        axis.text = element_text(face="bold",size=7),
+        legend.position="right",
+        legend.margin = margin(t=-15),
+        panel.grid.minor = element_blank(), 
+        panel.grid.major.y = element_line(color="grey85"),
+        panel.grid.major.x = element_blank()) +
+  scale_fill_manual(name="", values = col_set, labels = c("defaulted", "non-defaulted")) +
+  ylim(0, max_num+1000)
+
+# Combine two charts
+combined_bar_charts <- bar_chart_crtgp_2007 + bar_chart_crtgp_2019
+combined_bar_charts
+```
+
+<br>
+
+```{r box-plots, echo = FALSE, fig.width=10, fig.height = 4, fig.cap="Distribution of different key numerical variable in 2007 and 2019"}
+# Combine the data frames
+combined_data <- bind_rows(
+  mutate(cscore_b_2007, year = 2007),
+  mutate(cscore_b_2019, year = 2019)) %>%
+  filter(!is.na(CSCORE_B)) %>%
+  filter(!is.na(LOAN_AGE)) %>%
+  filter(!is.na(ORIG_RATE))
+
+# Plot the combined data for credit score
+plot_credit_score <- combined_data %>%
+  ggplot(aes(x = factor(year), y = CSCORE_B, fill = as.factor(year))) +
+  geom_boxplot(alpha = 0.5, width = 0.3) +
+  scale_fill_manual(values = c("#e21833", "#ffd200")) +
+  labs(title = "Credit score", x = "Year", y = "Borrower credit score") +
+  theme_classic() +
+  theme(axis.title.x = element_text(margin = margin(t = 15)),
+        axis.ticks = element_blank(),
+        panel.grid.major.y = element_line(color = "grey85"),
+        panel.grid.minor.y = element_line(color = "grey95"),
+        legend.position = "none")
+
+# Plot the combined data for original interest rate
+plot_orig_rate <- combined_data %>%
+  ggplot(aes(x = factor(year), y = ORIG_RATE, fill = as.factor(year))) +
+  geom_boxplot(alpha = 0.5, width = 0.3) +
+  scale_fill_manual(values = c("#e21833", "#ffd200")) +
+  labs(title = "Original interest rate", x = "Year", y = "Interest rate(%)") +
+  theme_classic() +
+  theme(axis.title.x = element_text(margin = margin(t = 15)),
+        axis.ticks = element_blank(),
+        panel.grid.major.y = element_line(color = "grey85"),
+        panel.grid.minor.y = element_line(color = "grey95"),
+        legend.position = "none")
+
+# Plot the combined data for loan age
+plot_loan_age <- combined_data %>%
+  ggplot(aes(x = factor(year), y = LOAN_AGE, fill = as.factor(year))) +
+  geom_boxplot(alpha = 0.5, width = 0.3) +
+  scale_fill_manual(values = c("#e21833", "#ffd200"), name = "Year") +
+  labs(title = "Loan age", x = "Year", y = "Loan age(months)") +
+  theme_classic() +
+  theme(axis.title.x = element_text(margin = margin(t = 15)),
+        axis.ticks = element_blank(),
+        legend.margin = margin(t=-15),
+        panel.grid.major.y = element_line(color = "grey85"),
+        panel.grid.minor.y = element_line(color = "grey95"))
+
+# Combine two box plots
+combined_box_plots <- plot_credit_score + plot_orig_rate + plot_loan_age
+combined_box_plots
+```
+
+<br>
+
+```{r scatter-plots, echo = FALSE, fig.width=10, fig.height = 4, fig.cap="The relationship between borrowers' credit score and interest rate in different purpose categories"}
+# define the levels for purpose
+purpose_level_order <- c("R", "P", "C")
+cscore_b_2007$PURPOSE <- factor(cscore_b_2007$PURPOSE, levels = purpose_level_order)
+cscore_b_2019$PURPOSE <- factor(cscore_b_2019$PURPOSE, levels = purpose_level_order)
+
+# define the color
+col_set_2 = c("#e21833", "darkgreen", "#ffd200")
+
+# scatter plot for 2007
+scatter_plot_2007 <- cscore_b_2007 %>%
+  filter(DEFAULT_FLAG == 1) %>%
+  filter(!is.na(CSCORE_B)) %>%
+  filter(!is.na(ORIG_RATE)) %>%
+  filter(!is.na(PURPOSE)) %>%
+  ggplot(aes(x=CSCORE_B,y=ORIG_RATE, color = PURPOSE)) +
+  geom_point(stroke=NA, alpha=0.5, size=2) + 
+  geom_smooth(method = "lm", se = FALSE, lty = 2, formula = y ~ x) +
+  labs(caption = "",
+       x="Borrower credit score", 
+       y="Original interest rate",
+       title = "2007 Q4") +
+  theme_classic() +
+  theme(axis.title.x = element_text(margin = margin(t = 15)),
+        axis.text = element_text(face="bold",size=10),
+        plot.caption = element_text(face="italic"),
+        plot.title = element_text(size=12),
+        panel.grid.major.y = element_line(color="grey95"),
+        legend.position = "none") + 
+  scale_color_manual(name = "", values = col_set_2, labels = c("Refinance", "Purchase", "Cash-out refinance"))
+
+# scatter plot for 2019
+scatter_plot_2019 <- cscore_b_2019 %>%
+  filter(DEFAULT_FLAG == 1) %>%
+  filter(!is.na(CSCORE_B)) %>%
+  filter(!is.na(ORIG_RATE)) %>%
+  filter(!is.na(PURPOSE)) %>%
+  ggplot(aes(x=CSCORE_B,y=ORIG_RATE, color = PURPOSE)) +
+  geom_point(stroke=NA, alpha=0.5, size=2) + 
+  geom_smooth(method = "lm", se = FALSE, lty = 2, formula = y ~ x) +
+  labs(caption = "",
+       x="Borrower credit score", 
+       y="Original interest rate",
+       title = "2019 Q4") +
+  theme_classic() +
+  theme(axis.title.x = element_text(margin = margin(t = 15)),
+        axis.text = element_text(face="bold",size=10),
+        legend.margin = margin(t=-15),
+        plot.caption = element_text(face="italic"),
+        plot.title = element_text(size=12),
+        panel.grid.major.y = element_line(color="grey95")) +
+  scale_color_manual(values = col_set_2, labels = c("Refinance", "Purchase", "Cash-out refinance"), name = "Purpose")
+
+# combine two scatter plots
+combined_scatter_plot <- scatter_plot_2007 + scatter_plot_2019
+combined_scatter_plot
+```
+
+<br>
+
+```{r, include = FALSE}
+# calculate the proportion for different credit score group in each purpose of loan
+purpose_default <- cscore_grouped_data_2007 %>%
+  filter(DEFAULT_FLAG == 1) %>%
+  group_by(PURPOSE, cscore_group) %>%
+  summarise(num = n()) %>%
+  ungroup() %>%
+  group_by(PURPOSE) %>%
+  mutate(total_purpose_n = sum(num),
+         percent = num/total_purpose_n,
+         PURPOSE = factor(PURPOSE, levels = c("R", "P", "C")))
+```
+
+```{r stacked-bar-chart, echo = FALSE, fig.width=10, fig.height = 4, fig.cap="The proportion for differet credit score group in different purpose of loan"}
+purpose_default %>%
+  ggplot(aes(x=as.factor(PURPOSE), y=percent)) +
+  geom_col(aes(fill=cscore_group),width=0.5)+
+  labs(y = "",
+       x = "") +
+  theme_minimal() +
+  theme(axis.title.x = element_text(face="bold"),
+        axis.text = element_text(face="bold",size=10),
+        legend.position="right",
+        legend.margin = margin(t=-15),
+        panel.grid.minor = element_blank(), 
+        panel.grid.major.y = element_line(color="grey90"),
+        panel.grid.major.x = element_blank()) +
+  scale_fill_brewer(name="",palette ="Paired") +
+  scale_x_discrete(labels = c("Refinance", "Purchase", "Cash-out refinance")) 
+```
+
+```{r, include = FALSE}
+# state default rate and ranking data for 2007
+state_grouped_data_2007 <- cscore_b_2007 %>% 
+  group_by(STATE) %>%
+  summarise(total_n_2007 = n(),
+            total_default_2007 = sum(DEFAULT_FLAG == 1),
+            default_rate_2007 = total_default_2007/total_n_2007,
+            median_credit_score_2007 = median(CSCORE_B, na.rm = TRUE)) %>%
+  arrange(-default_rate_2007)
+
+state_grouped_data_2007 <- state_grouped_data_2007 %>%
+  mutate(across(default_rate_2007, ~rank(desc(.), ties.method= "min"), .names = 'rank_2007'))
+
+# state default rate and ranking data for 2019
+state_grouped_data_2019 <- cscore_b_2019 %>% 
+  group_by(STATE) %>%
+  summarise(total_n_2019 = n(),
+            total_default_2019 = sum(DEFAULT_FLAG == 1),
+            default_rate_2019 = total_default_2019/total_n_2019,
+            median_credit_score_2019 = median(CSCORE_B, na.rm = TRUE)) %>%
+  arrange(-default_rate_2019)
+
+state_grouped_data_2019 <- state_grouped_data_2019 %>%
+  mutate(across(default_rate_2019, ~rank(desc(.), ties.method= "min"), .names = 'rank_2019'))
+
+joined_data <- full_join(state_grouped_data_2007, state_grouped_data_2019, by = "STATE")
+```
+
+```{r, include = FALSE}
+# join two data
+joined_data <- joined_data %>%
+  mutate(label_2007 = sprintf("State: %s\nDefault rate rank: %s\nDefault rate(%%): %.3f", 
+                           STATE, rank_2007, default_rate_2007 * 100), 
+         label_2019 = sprintf("State: %s\nDefault rate rank: %s\nDefault rate(%%): %.3f", 
+                           STATE, rank_2019, default_rate_2007 * 100),
+         state = STATE)
+```
+
+<br>
+
+```{r map-plots, echo = FALSE, fig.width=10, fig.height = 4, fig.cap="Default rate rank in 2007(left) v.s. 2019(right)"}
+# plot map data - 2007
+p_2007 <- plot_usmap(regions = "states", data = joined_data, 
+                         values = "rank_2007", color = "white") + 
+  scale_fill_continuous(name="Rank", 
+                        low = "#e21833", high = "#ffd200")+
+  theme(plot.title = element_text(size=10,hjust=0.5),
+        legend.position = "right",legend.key.size = unit(0.5, 'cm')) +
+  aes(text = label_2007)
+
+# plot map data - 2019
+p_2019<- plot_usmap(regions = "states", data = joined_data, 
+                         values = "rank_2019", color = "white") + 
+  scale_fill_continuous(name="Rank", 
+                        low = "#e21833", high = "#ffd200")+
+  theme(plot.title = element_text(size=10,hjust=0.5),
+        legend.position = "right",legend.key.size = unit(0.3, 'cm')) + 
+  aes(text = label_2019)
+
+# combine two map plots
+subplot(ggplotly(p_2007, tooltip = c('label_2007')), ggplotly(p_2019, tooltip = c('label_2019')))
+```
